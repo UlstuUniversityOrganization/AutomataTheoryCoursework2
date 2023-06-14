@@ -12,6 +12,7 @@ class MatrixInterpreter:
     def __init__(self, count_y, count_wu, rows_count):
         matrices = self.load_matrices("matrix.txt")
 
+        #self.yb.append(["O" for i in range(self.count_a + self.count_x)])
         for x in range(count_y):
             self.yb.append(matrices[x])
 
@@ -121,21 +122,52 @@ class MatrixInterpreter:
                 a[x] = '0'
         return "".join(a)
 
-    def print_state(self, s, row):
+    def get_y_str(self, iteration, row) -> str:
+
+        result = "Состояния y(1..15): "
+
+        if iteration == 0:
+            result += "-   "
+        else:
+            found_y = False
+            for x in range(len(self.yb)):
+                if MatrixInterpreter.compare_row_with_matrix(row, self.yb[x]):
+                    found_y = True
+                    result += "y" + str(x + 1)
+            if found_y:
+                result += "   "
+            else:
+                result += "-   "
+
+        result += "Состояния бинарные y(1..15): "
+        if iteration == 0:
+            result += "0" * len(self.yb)
+        else:
+            bin_y = list("0" * len(self.yb))
+            for x in range(len(self.yb)):
+                bin_y[x] = '1' if MatrixInterpreter.compare_row_with_matrix(row, self.yb[x]) else '0'
+            result += "".join(bin_y)
+
+        return result
+
+    def print_state(self, s, row, iteration):
         print("Состояние: S" + str(s) + "   ", end="")
         print("Состояния a(1..4): " + format(s, '04b') + "   ", end="")
-        print("Состояния y(1..15):", end="")
 
-        for x in range(len(self.yb)):
-            if MatrixInterpreter.compare_row_with_matrix(row, self.yb[x]):
-                print(" y" + str(x + 1), end="")
-        print("   ", end="")
+        print(self.get_y_str(iteration, row))
 
-        bin_y = list("0" * len(self.yb))
-        for x in range(len(self.yb)):
-            bin_y[x] = '1' if MatrixInterpreter.compare_row_with_matrix(row, self.yb[x]) else '0'
-
-        print("Состояния бинарные y(1..15):" + "".join(bin_y))
+        # print("Состояния y(1..15):", end="")
+        #
+        # for x in range(len(self.yb)):
+        #     if MatrixInterpreter.compare_row_with_matrix(row, self.yb[x]):
+        #         print(" y" + str(x + 1), end="")
+        # print("   ", end="")
+        #
+        # bin_y = list("0" * len(self.yb))
+        # for x in range(len(self.yb)):
+        #     bin_y[x] = '1' if MatrixInterpreter.compare_row_with_matrix(row, self.yb[x]) else '0'
+        #
+        # print("Состояния бинарные y(1..15):" + "".join(bin_y))
 
     def next_step(self, s, xb):
         row = self.get_row2(s, xb)
@@ -146,14 +178,18 @@ class MatrixInterpreter:
     def start(self, xb):
         start = time.time()
         s = 0
+        row = ""
+        iteration = 0
         while not self.conditions[s]:
             self.conditions[s] = True
+            self.print_state(s, row, iteration)
             row = self.get_row2(s, xb)
-            self.print_state(s, row)
             s = self.next_step(s, xb)
+            iteration += 1
 
+        self.print_state(s, row, iteration)
         row = self.get_row2(s, xb)
-        self.print_state(s, row)
+
 
         end = time.time()
 
